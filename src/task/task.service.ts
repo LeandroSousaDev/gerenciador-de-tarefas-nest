@@ -1,6 +1,7 @@
-import { HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
-import { FindAllParameters, TaskDto, TaskStatusEnum } from './task.dto';
+import { HttpCode, HttpException, HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
+import { TaskDto, TaskStatusEnum } from './task.dto';
 import { PrismaService } from 'src/prisma/prisma.service';
+import { NotFoundError } from 'rxjs';
 
 @Injectable()
 export class TaskService {
@@ -9,12 +10,21 @@ export class TaskService {
     constructor(private prisma: PrismaService) { }
 
     async create(task: TaskDto) {
-        task.status = TaskStatusEnum.TO_DO
-        task.expirationDate = new Date(task.expirationDate)
 
-        return this.prisma.task.create({
-            data: task
-        })
+        try {
+            const user = await this.prisma.user.findUniqueOrThrow({ where: { id: task.userId } })
+
+            task.status = TaskStatusEnum.TO_DO
+            task.expirationDate = new Date(task.expirationDate)
+
+            return this.prisma.task.create({
+                data: task
+            })
+
+        } catch (error) {
+            throw new NotFoundException("usuario não encontrado")
+
+        }
     }
 
     findById(id: string) {
