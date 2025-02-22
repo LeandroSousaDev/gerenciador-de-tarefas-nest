@@ -26,10 +26,17 @@ export class TaskService {
         }
     }
 
-    findById(id: string) {
-        return this.prisma.task.findUnique({
+    async findById(id: string) {
+
+        const tasks = await this.prisma.task.findUnique({
             where: { id }
         })
+
+        if (!tasks) {
+            throw new NotFoundException("tarefa não encontrada")
+        } else {
+            return tasks
+        }
     }
 
     async findAllByUser(id: string) {
@@ -48,13 +55,20 @@ export class TaskService {
 
     }
 
-    uptade(id: string, task: TaskDto) {
-        task.expirationDate = new Date(task.expirationDate)
+    async uptade(id: string, task: TaskDto) {
+        try {
+            await this.prisma.user.findUniqueOrThrow({ where: { id: task.userId } })
 
-        return this.prisma.task.update({
-            where: { id },
-            data: task
-        })
+            task.expirationDate = new Date(task.expirationDate)
+
+            return await this.prisma.task.update({
+                where: { id },
+                data: task
+            })
+        } catch (PrismaClientKnownRequestError) {
+            throw new NotFoundException("tarefa ou usuario não foi localizada")
+        }
+
     }
 
     remove(id: string) {
