@@ -17,9 +17,9 @@ export class TaskController {
         return this.taskService.findById(id)
     }
 
-    @Get()
-    findAll() {
-        return this.taskService.findAll()
+    @Get("/:id/user")
+    findAll(@Param("id") id: string) {
+        return this.taskService.findAllByUser(id)
     }
 
     @Patch("/:id")

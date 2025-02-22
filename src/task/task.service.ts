@@ -21,9 +21,8 @@ export class TaskService {
                 data: task
             })
 
-        } catch (error) {
+        } catch (PrismaClientKnownRequestError) {
             throw new NotFoundException("usuario não encontrado")
-
         }
     }
 
@@ -33,8 +32,19 @@ export class TaskService {
         })
     }
 
-    findAll() {
-        return this.prisma.task.findMany()
+    async findAllByUser(id: string) {
+
+        const tasks = await this.prisma.task.findMany({
+            where: {
+                userId: id
+            }
+        })
+
+        if (tasks.length == 0) {
+            throw new NotFoundException("usuario não encontrado")
+        } else {
+            return tasks
+        }
 
     }
 
