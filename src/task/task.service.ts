@@ -71,9 +71,15 @@ export class TaskService {
 
     }
 
-    remove(id: string) {
-        return this.prisma.task.delete({
-            where: { id }
-        })
+    async remove(id: string) {
+        try {
+            return await this.prisma.task.delete({
+                where: { id }
+            })
+        } catch (PrismaClientKnownRequestError) {
+            throw new NotFoundException("tarefa não foi localizada")
+        }
+
+
     }
 }
